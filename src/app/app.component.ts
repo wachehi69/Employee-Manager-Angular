@@ -13,6 +13,8 @@ export class AppComponent implements OnInit{
   
   public employees!: Employee[];
   public editEmployee: Employee | undefined;
+  public deleteEmploye!: Employee;
+  public searchemployee!: Employee | null;
 
   constructor(private employeeService: EmployeService) { }
 
@@ -39,9 +41,11 @@ export class AppComponent implements OnInit{
       (response: Employee) => {
         console.log(response);
         this.getEmployees(); // appel pour afficher la liste des employés
+        addForm.reset();
       },
       (error: HttpErrorResponse) => {
         alert(error.message)
+        addForm.reset();
       }
       );
    
@@ -56,8 +60,35 @@ export class AppComponent implements OnInit{
       (error: HttpErrorResponse) => {
         alert(error.message)
       }
-      );
-   
+      );   
+  }
+
+  // Mthode pertmettant supprimer un employe
+  public OnDeleteEmployee(employeeId: number) :void {
+    this.employeeService.deleteEmployee(employeeId).subscribe(
+      (response: void) => {
+       console.log(response);
+       this.getEmployees();
+      },
+      (error: HttpErrorResponse) => {
+        alert(error.message);
+      }
+      );   
+}
+  public searchEmployees(key: string) : void {
+    console.log(key);    
+    const results: Employee [] = [];
+   for(const employee of this.employees) {
+     if(employee.name.toLowerCase().indexOf(key.toLowerCase()) !== -1 
+     || employee.email.toLowerCase().indexOf(key.toLowerCase()) !== -1 
+     || employee.phone.toLowerCase().indexOf(key.toLowerCase()) !== -1 
+     || employee.jobTitle.toLowerCase().indexOf(key.toLowerCase()) !== -1){
+         results.push(employee);
+     }
+   }
+    this.employees = results;
+    if(results.length === 0 || !key)
+    this.getEmployees();
   }
 
   // Methode permettant de créer le button modal et de tester le mode
@@ -78,6 +109,7 @@ export class AppComponent implements OnInit{
     }
 
     if(mode === 'delete') {
+      this.deleteEmploye = employee;
       button.setAttribute('data-target', '#deleteEmployeeModal'); // delete
     }
     container?.appendChild(button);
